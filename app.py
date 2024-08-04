@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
 CORS(app)  # Isso permitirá que todas as origens façam requisições para a API
@@ -9,10 +10,10 @@ app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 
 # Configurações do banco de dados
-db_host = 'database-1.cfugg6i4e5ag.us-east-2.rds.amazonaws.com'
-db_user = 'admin'
-db_password = 'Senac24joao'
-db_name = 'formulario_db'
+db_host = os.getenv('DB_HOST')
+db_user = os.getenv('DB_USER')
+db_password = os.getenv('DB_PASSWORD')
+db_name = os.getenv('DB_NAME')
 
 @app.route('/register', methods=['POST'])
 def register():

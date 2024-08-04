@@ -9,9 +9,9 @@ app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 
 # Configurações do banco de dados
-db_host = 'localhost'
-db_user = 'root'
-db_password = ''
+db_host = 'database-1.cfugg6i4e5ag.us-east-2.rds.amazonaws.com'
+db_user = 'admin'
+db_password = 'Senac24joao'
 db_name = 'formulario_db'
 
 @app.route('/register', methods=['POST'])
@@ -34,6 +34,8 @@ def register():
         nome = data.get('nome')
         senha = data.get('senha')
         cpf = data.get('cpf')
+        email = data.get('email')
+
 
         # Verificar se o usuário já existe
         try:
@@ -50,8 +52,8 @@ def register():
 
         # Inserir novo usuário no banco de dados
         try:
-            sql = "INSERT INTO usuarios (nome, cpf, senha) VALUES (%s, %s, %s)"
-            cursor.execute(sql, (nome, cpf, hashed_password,))
+            sql = "INSERT INTO usuarios (nome, cpf, senha,email) VALUES (%s, %s, %s,%s)"
+            cursor.execute(sql, (nome, cpf, hashed_password,email,))
             connection.commit()
         except mysql.connector.Error as e:
             return jsonify({"message": "Erro ao registrar usuário", "error": str(e)}), 500

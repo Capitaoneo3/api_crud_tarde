@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import mysql.connector
-from app import connect_to_database
+from utils import connect_to_database  # Importação da função de conexão
 
 posts_bp = Blueprint('posts', __name__)
 

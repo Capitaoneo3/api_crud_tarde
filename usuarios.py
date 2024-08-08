@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
-from app import connect_to_database
+from utils import connect_to_database  # Importação da função de conexão
 
 usuarios_bp = Blueprint('usuarios', __name__)
 

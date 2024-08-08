@@ -5,6 +5,82 @@ from app import connect_to_database
 
 usuarios_bp = Blueprint('usuarios', __name__)
 
+
+@usuarios_bp.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    nome = data.get('nome')
+    senha = data.get('senha')
+    cpf = data.get('cpf')
+    email = data.get('email')
+
+    connection = connect_to_database()
+    if not connection:
+        return jsonify({"message": "Erro interno do servidor ao conectar ao banco de dados"}), 500
+
+    try:
+        cursor = connection.cursor()
+
+        # Verificar se o usuário já existe
+        cursor.execute('SELECT * FROM usuarios WHERE nome = %s', (nome,))
+        usuario_existente = cursor.fetchone()
+
+        if usuario_existente:
+            return jsonify({"message": "Usuário já existe"}), 409
+
+        # Gerar hash da senha
+        hashed_password = generate_password_hash(senha, method='pbkdf2:sha256:600000')
+
+        # Inserir novo usuário no banco de dados
+        sql = "INSERT INTO usuarios (nome, cpf, senha, email) VALUES (%s, %s, %s, %s)"
+        cursor.execute(sql, (nome, cpf, hashed_password, email))
+        connection.commit()
+
+        return jsonify({"message": "Usuário registrado com sucesso"}), 201
+
+    except mysql.connector.Error as e:
+        return jsonify({"message": "Erro ao registrar usuário", "error": str(e)}), 500
+
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'connection' in locals():
+            connection.close()
+
+@usuarios_bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    nome = data.get('nome')
+    senha = data.get('senha')
+
+    connection = connect_to_database()
+    if not connection:
+        return jsonify({"message": "Erro interno do servidor ao conectar ao banco de dados"}), 500
+
+    try:
+        cursor = connection.cursor()
+
+        # Buscar usuário pelo nome
+        cursor.execute('SELECT * FROM usuarios WHERE nome = %s', (nome,))
+        usuario = cursor.fetchone()
+
+        if not usuario or not check_password_hash(usuario[3], senha):
+            return jsonify({"message": "Nome de usuário ou senha inválidos"}), 401
+
+        return jsonify({"message": "Login bem-sucedido"}), 200
+
+    except mysql.connector.Error as e:
+        return jsonify({"message": "Erro ao executar consulta no banco de dados", "error": str(e)}), 500
+
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'connection' in locals():
+            connection.close()
+
+
+
+
 # Rota para listar todos os usuários
 @usuarios_bp.route('/usuarios', methods=['GET'])
 def get_usuarios():

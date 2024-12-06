@@ -5,7 +5,6 @@ from datetime import datetime
 import pytz
 posts_bp = Blueprint('posts', __name__)
 
-# Rota para listar todos os posts
 @posts_bp.route('/posts', methods=['GET'])
 def get_posts():
     connection = connect_to_database()
@@ -14,22 +13,50 @@ def get_posts():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        # Atualizando a consulta para incluir o nome do autor
-        query = """
-        SELECT 
-            posts.id, 
-            posts.titulo, 
-            posts.conteudo, 
-            posts.autor_id, 
-            posts.data_publicacao,
-            usuarios.nome AS autor_nome
-        FROM 
-            posts
-        JOIN 
-            usuarios ON posts.autor_id = usuarios.id
-        """
-        cursor.execute(query)
+
+        # Obter o parâmetro de busca da query string (se houver)
+        search_query = request.args.get('search', '')  # 'search' é o nome do campo de busca
+
+        # Construir a consulta SQL, com base na presença do termo de busca
+        if search_query:
+            query = """
+            SELECT 
+                posts.id, 
+                posts.titulo, 
+                posts.conteudo, 
+                posts.autor_id, 
+                posts.data_publicacao,
+                usuarios.nome AS autor_nome
+            FROM 
+                posts
+            JOIN 
+                usuarios ON posts.autor_id = usuarios.id
+            WHERE 
+                posts.titulo LIKE %s OR posts.conteudo LIKE %s
+            """
+            # Adicionar os parâmetros de busca para título e conteúdo (com o curinga '%')
+            cursor.execute(query, ('%' + search_query + '%', '%' + search_query + '%'))
+        else:
+            # Se não houver termo de busca, retornar todos os posts
+            query = """
+            SELECT 
+                posts.id, 
+                posts.titulo, 
+                posts.conteudo, 
+                posts.autor_id, 
+                posts.data_publicacao,
+                usuarios.nome AS autor_nome
+            FROM 
+                posts
+            JOIN 
+                usuarios ON posts.autor_id = usuarios.id
+            """
+            cursor.execute(query)
+
+        # Buscar os resultados
         posts = cursor.fetchall()
+
+        # Retornar os posts encontrados como JSON
         return jsonify(posts)
     except mysql.connector.Error as e:
         return jsonify({"message": "Erro ao buscar os posts", "error": str(e)}), 500

@@ -6,7 +6,7 @@ def connect_to_database():
     db_host = 'localhost'
     db_user = 'root'
     db_password = ''
-    db_name = 'aula_django'
+    db_name = 'formulario_db'
 
     try:
         connection = mysql.connector.connect(

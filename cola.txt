@@ -8,3 +8,5 @@ curl -X POST -H "Content-Type: application/json" -d "{\"nome\": \"pamela\",\"cpf
 
 
 pip freeze > requirements.txt
+
+
